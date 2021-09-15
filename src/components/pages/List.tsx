@@ -8,11 +8,10 @@ import ListItemText from "@material-ui/core/ListItemText";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
-import BeachAccessIcon from "@material-ui/icons/BeachAccess";
 import ImageIcon from "@material-ui/icons/Image";
-import WorkIcon from "@material-ui/icons/Work";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import data from "../../data/cards";
+import { getCard } from "../../data/garlandService";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -28,11 +27,21 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-interface ListPageProps {}
+interface ListPageProps { }
 
 const Page: React.FC<ListPageProps> = () => {
   const classes = useStyles();
   const cardList = data;
+const [card, setCard] = useState()
+  // xivService.search()
+  useEffect(()=> {
+    const f = async () => {
+      const card = await getCard(9773)
+      setCard(card)
+    }
+    f()
+  }, [])
+
   return (
     <>
       <AppBar position="static">
@@ -51,10 +60,11 @@ const Page: React.FC<ListPageProps> = () => {
         </Toolbar>
       </AppBar>
       <Container maxWidth="lg">
+        <div>{JSON.stringify(card)}</div>
         <List className={classes.root}>
           {cardList.map((card) => {
             return (
-              <ListItem>
+              <ListItem key={card.id}>
                 <ListItemAvatar>
                   <Avatar>
                     <ImageIcon />
