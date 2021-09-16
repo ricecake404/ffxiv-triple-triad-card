@@ -10,7 +10,6 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import ImageIcon from "@material-ui/icons/Image";
 import React, {useEffect, useState} from "react";
-import data from "../../data/cards";
 import xivService, {CardBaseInfo} from "../../data/xivapiService";
 import garlandService from "../../data/garlandService";
 
@@ -28,36 +27,80 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-interface ListPageProps { }
+interface ListPageProps {
+}
+
+type Card = {
+    base: CardBaseInfo;
+    detail: any;
+}
+
+type CardDetailInfo = {
+    id: string,
+    obj: {
+        item: {
+            achievements: number[]
+            category: number
+            description: string
+            icon: number
+            id: number
+            ilvl: number
+            name: string
+            patch: number
+            patchCategory: number
+            price: number
+            rarity: number
+            stackSize: number
+            tripletriad: {
+                chs: { description: string },
+                bottom: number
+                left: number
+                right: number
+                top: number,
+                plate: number,
+                type: string,
+                rarity: number,
+            }
+            unique: number
+            unlistable: number
+        },
+        partials: any[]
+    }
+}
 
 const Page: React.FC<ListPageProps> = () => {
-  const classes = useStyles();
-  const cardList = data;
-const [card, setCard] = useState()
-  // xivService.search()
-  useEffect(()=> {
-    const f = async () => {
-        const baseInfos: CardBaseInfo[] = await xivService.getCardBaseInfos()
-        console.log(baseInfos)
-        const itemIds = baseInfos.map(it => it.itemId)
-        let detailInfos: any = []
-        const batchSize = 50
-        for (let i = 0; i < itemIds.length; i += batchSize) {
-            const detailParts = await garlandService.getCardDetails(itemIds.slice(i, i + batchSize))
-            detailInfos = detailInfos.concat(detailParts)
+    const classes = useStyles();
+    const [cards, setCards] = useState<Card[]>([]);
+
+    useEffect(() => {
+        const f = async () => {
+            const baseInfos: CardBaseInfo[] = await xivService.getCardBaseInfos()
+            console.log(baseInfos)
+            const itemIds = baseInfos.map(it => it.itemId)
+            let detailInfos: CardDetailInfo[] = []
+            const batchSize = 50
+            for (let i = 0; i < itemIds.length; i += batchSize) {
+                const detailParts = await garlandService.getCardDetails(itemIds.slice(i, i + batchSize))
+                detailInfos = detailInfos.concat(detailParts)
+            }
+            console.log(detailInfos)
+            const cardInfos = []
+            for (let i = 0; i < baseInfos.length; i++) {
+                cardInfos.push({
+                    base: baseInfos[i],
+                    detail: detailInfos[i],
+                })
+            }
+            setCards(cardInfos)
         }
-        console.log(detailInfos)
-        // setCard(detailInfos)
+        f()
+    }, [])
 
-    }
-    f()
-  }, [])
-
-  return (
-    <>
-      <AppBar position="static">
-        <Toolbar>
-          {/* <IconButton
+    return (
+        <>
+            <AppBar position="static">
+                <Toolbar>
+                    {/* <IconButton
           edge="start"
           className={classes.menuButton}
           color="inherit"
@@ -65,29 +108,29 @@ const [card, setCard] = useState()
         >
           <MenuIcon />
         </IconButton> */}
-          <Typography variant="h6" className={classes.title}>
-            List Page
-          </Typography>
-        </Toolbar>
-      </AppBar>
-      <Container maxWidth="lg">
-        <div>{JSON.stringify(card)}</div>
-        <List className={classes.root}>
-          {cardList.map((card) => {
-            return (
-              <ListItem key={card.id}>
-                <ListItemAvatar>
-                  <Avatar>
-                    <ImageIcon />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary={card.name_chs} secondary="Jan 9, 2014" />
-              </ListItem>
-            );
-          })}
-        </List>
-      </Container>
-    </>
+                    <Typography variant="h6" className={classes.title}>
+                        List Page
+                    </Typography>
+                </Toolbar>
+            </AppBar>
+            <Container maxWidth="lg">
+                {/*<div>{JSON.stringify(cards)}</div>*/}
+                <List className={classes.root}>
+                    {cards.map((card) => {
+                        return (
+                            <ListItem key={card.base.cardId}>
+                                <ListItemAvatar>
+                                    <Avatar>
+                                        <ImageIcon/>
+                                    </Avatar>
+                                </ListItemAvatar>
+                                <ListItemText primary={card.detail.obj.item.name} secondary={card.base.orderNumber}/>
+                            </ListItem>
+                        );
+                    })}
+                </List>
+            </Container>
+        </>
   );
 };
 
