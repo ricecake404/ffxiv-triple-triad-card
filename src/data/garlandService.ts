@@ -1,10 +1,8 @@
-export {getCard}
+const BASE_URL = 'https://ffxiv.cyanclay.xyz/api/get.php?lang=chs'
 
-const BASE_URL = 'https://ffxiv.cyanclay.xyz/db/doc'
-
-const getCard = async (itemId: number) => {
-    const resp = await fetch(`${BASE_URL}/item/chs/3/${itemId}.json`, {
-        method: 'GET',
-    })
-    return resp.ok ? resp.json() : Promise.reject(new Error('get card data failed'))
+export default {
+    async getCardDetails(itemIds: number[]) {
+        const resp = await fetch(`${BASE_URL}&version=3&type=item&id=${itemIds.join(',')}`)
+        return resp.ok ? await resp.json() : Promise.reject(new Error('get card data failed'));
+    }
 }

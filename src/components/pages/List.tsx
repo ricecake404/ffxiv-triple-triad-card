@@ -5,26 +5,27 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import {createStyles, makeStyles, Theme} from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import ImageIcon from "@material-ui/icons/Image";
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import data from "../../data/cards";
-import { getCard } from "../../data/garlandService";
+import xivService, {CardBaseInfo} from "../../data/xivapiService";
+import garlandService from "../../data/garlandService";
 
 const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    root: {
-      flexGrow: 1,
-    },
-    menuButton: {
-      marginRight: theme.spacing(2),
-    },
-    title: {
-      flexGrow: 1,
-    },
-  })
+    createStyles({
+        root: {
+            flexGrow: 1,
+        },
+        menuButton: {
+            marginRight: theme.spacing(2),
+        },
+        title: {
+            flexGrow: 1,
+        },
+    })
 );
 
 interface ListPageProps { }
@@ -36,8 +37,18 @@ const [card, setCard] = useState()
   // xivService.search()
   useEffect(()=> {
     const f = async () => {
-      const card = await getCard(9773)
-      setCard(card)
+        const baseInfos: CardBaseInfo[] = await xivService.getCardBaseInfos()
+        console.log(baseInfos)
+        const itemIds = baseInfos.map(it => it.itemId)
+        let detailInfos: any = []
+        const batchSize = 50
+        for (let i = 0; i < itemIds.length; i += batchSize) {
+            const detailParts = await garlandService.getCardDetails(itemIds.slice(i, i + batchSize))
+            detailInfos = detailInfos.concat(detailParts)
+        }
+        console.log(detailInfos)
+        // setCard(detailInfos)
+
     }
     f()
   }, [])
