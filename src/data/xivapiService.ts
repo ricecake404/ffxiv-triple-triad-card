@@ -56,37 +56,33 @@ export type CardBaseInfo = {
   orderType: "normal" | "extra";
 };
 
-const xivapiService = {
-  async getCardBaseInfos(): Promise<CardBaseInfo[]> {
-    const cardItems: CardItemResult[] = await getDataList(
-      "search?filters=ItemUICategoryTargetID=86&columns=ID,AdditionalDataTargetID"
+export const getCardBaseInfos = async (): Promise<CardBaseInfo[]> => {
+  const cardItems: CardItemResult[] = await getDataList(
+    "search?filters=ItemUICategoryTargetID=86&columns=ID,AdditionalDataTargetID"
+  );
+  const cardList: XIVResponse<any> = await getData("TripleTriadCardResident");
+  const totalCardNumber = cardList.Pagination.ResultsTotal ?? 0;
+  const cardIds = [];
+  for (let i = 0; i < totalCardNumber; i++) {
+    cardIds.push(i + 1);
+  }
+  const tripleTriadCardResidents: TripleTriadCardResidentResult[] =
+    await getDataList(
+      `TripleTriadCardResident?ids=${cardIds.join(
+        ","
+      )}&columns=ID,Order,UIPriority`
     );
-    const cardList: XIVResponse<any> = await getData("TripleTriadCardResident");
-    const totalCardNumber = cardList.Pagination.ResultsTotal ?? 0;
-    const cardIds = [];
-    for (let i = 0; i < totalCardNumber; i++) {
-      cardIds.push(i + 1);
-    }
-    const tripleTriadCardResidents: TripleTriadCardResidentResult[] =
-      await getDataList(
-        `TripleTriadCardResident?ids=${cardIds.join(
-          ","
-        )}&columns=ID,Order,UIPriority`
-      );
 
-    return cardItems.map((cardItem) => {
-      const cardResident = tripleTriadCardResidents.find(
-        (resident) => resident.ID === cardItem.AdditionalDataTargetID
-      );
+  return cardItems.map((cardItem) => {
+    const cardResident = tripleTriadCardResidents.find(
+      (resident) => resident.ID === cardItem.AdditionalDataTargetID
+    );
 
-      return {
-        cardId: cardItem.AdditionalDataTargetID,
-        itemId: cardItem.ID,
-        orderNumber: cardResident?.Order ?? -1,
-        orderType: cardResident?.UIPriority === 0 ? "normal" : "extra",
-      };
-    });
-  },
+    return {
+      cardId: cardItem.AdditionalDataTargetID,
+      itemId: cardItem.ID,
+      orderNumber: cardResident?.Order ?? -1,
+      orderType: cardResident?.UIPriority === 0 ? "normal" : "extra",
+    };
+  });
 };
-
-export default xivapiService;
