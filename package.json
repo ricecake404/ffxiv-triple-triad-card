@@ -14,6 +14,8 @@
     "@types/react-dom": "^17.0.0",
     "@types/react-router-dom": "^5.1.7",
     "@xivapi/js": "^0.3.3",
+    "husky": "^7.0.2",
+    "lint-staged": "^11.1.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-router-dom": "^5.2.0",
@@ -44,5 +46,18 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "devDependencies": {
+    "prettier": "^2.4.1"
+  },
+   "husky": {
+     "hooks": {
+       "pre-commit": "lint-staged"
+     }
+  },
+  "lint-staged": {
+       "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
+       "prettier --write"
+     ]
+   }
 }
